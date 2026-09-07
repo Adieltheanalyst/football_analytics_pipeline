@@ -1,0 +1,22 @@
+# Environments
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+
+# Data and artefacts — never commit these
+data/*.mp4
+data/*.mkv
+data/*.avi
+cache/
+outputs/
+models/
+!models/.gitkeep
+!data/.gitkeep
+
+# Secrets
+.env
+
+# Editor / OS
+.vscode/
+Thumbs.db

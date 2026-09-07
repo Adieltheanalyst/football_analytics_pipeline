@@ -1,0 +1,19 @@
+# Core CV / ML
+ultralytics>=8.3.0          # YOLO detection + OpenVINO export
+opencv-python>=4.10.0       # video IO, drawing, homography
+supervision>=0.25.0         # tracking (ByteTrack), annotators, detection utils
+openvino>=2024.4.0          # Intel CPU/iGPU inference runtime
+ 
+# Data
+numpy>=1.26.0
+pandas>=2.2.0
+pyarrow>=17.0.0             # Parquet cache
+scikit-learn>=1.5.0         # KMeans for team classification
+ 
+# Config / CLI
+pyyaml>=6.0
+tqdm>=4.66.0
+ 
+# Dev
+pytest>=8.0.0
+ 

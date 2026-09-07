@@ -1,0 +1,92 @@
+# ---------------------------------------------------------------------------
+# Football analytics PoC — all tunable parameters live here.
+# Nothing in src/ should hardcode a threshold. If you find yourself typing a
+# number into a module, it belongs in this file instead.
+# ---------------------------------------------------------------------------
+
+video:
+  # Frames per second to SAMPLE at (not the video's native fps).
+  # 5 is enough for possession/pass logic and keeps CPU inference tractable.
+  target_fps: 5
+  # Resize longest edge to this before inference. 640 matches YOLO training size.
+  inference_size: 640
+  # Optional: only process a slice of the clip, in seconds. null = whole video.
+  start_second: null
+  end_second: null
+
+models:
+  # Local paths to weights. Run `python -m src.cli setup` for download help.
+  # Point these at the *_openvino_model/ directories after exporting.
+  player_detection: "models/player_detection.pt"
+  pitch_detection: "models/pitch_detection.pt"
+
+  # "pytorch" or "openvino". openvino is 2-3x faster on Intel CPUs.
+  backend: "pytorch"
+
+  # torch device. On this machine there is no CUDA, so "cpu".
+  device: "cpu"
+
+detection:
+  # Class IDs from the Roboflow football-players-detection dataset.
+  classes:
+    ball: 0
+    goalkeeper: 1
+    player: 2
+    referee: 3
+
+  # Confidence thresholds. The ball is small and low-contrast, so it gets a
+  # much more permissive threshold than players do.
+  conf_player: 0.30
+  conf_ball: 0.10
+  iou_nms: 0.50
+
+  # Ball ROI trick: instead of searching the full frame every time, crop a
+  # window around the last known ball position. Faster AND more accurate,
+  # because the ball occupies more pixels in the upscaled crop.
+  ball_roi:
+    enabled: true
+    # Half-width/height of the crop window, in pixels of the original frame.
+    window: 320
+    # If the ball is missed for this many consecutive sampled frames,
+    # fall back to a full-frame search.
+    max_misses: 5
+
+tracking:
+  # supervision's ByteTrack parameters.
+  track_activation_threshold: 0.25
+  lost_track_buffer: 30
+  minimum_matching_threshold: 0.80
+  # ByteTrack needs the sampled frame rate, not the native one.
+  frame_rate: 5
+
+teams:
+  # "hsv" (fast, CPU-friendly) or "siglip" (accurate, very slow on CPU).
+  # See README for why the PoC defaults to hsv.
+  method: "hsv"
+  # Fraction of the player bbox to sample for kit colour. Torso only:
+  # skip the head (top) and legs/shorts (bottom) to avoid skin and grass.
+  crop_top: 0.20
+  crop_bottom: 0.55
+  crop_side_margin: 0.20
+  # Number of frames to sample when fitting the two-team colour clusters.
+  fit_frames: 40
+
+pitch:
+  # Roboflow pitch model emits 32 keypoints. Only keypoints above this
+  # confidence are used to solve the homography.
+  keypoint_confidence: 0.50
+  # Minimum number of confident keypoints needed. cv2.findHomography needs 4;
+  # 6 gives RANSAC something to reject outliers with.
+  min_keypoints: 6
+  ransac_threshold: 8.0
+  # Smooth the homography across frames to stop the radar jittering.
+  smoothing_alpha: 0.70
+
+cache:
+  directory: "cache"
+  # Cache key is a hash of (video file, relevant config values). Change a
+  # threshold above and the cache invalidates itself automatically.
+  enabled: true
+
+output:
+  directory: "outputs"
