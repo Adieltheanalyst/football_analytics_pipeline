@@ -21,14 +21,14 @@ class Detector:
         self._last_ball_xy: tuple[float,float] | None = None
         self._consecutive_misses=0
 
-    def _load(self,weights: str) -> YOLO:
+    def _load(self,weights: str, task: str = "detect") -> YOLO:
         path = Path(weights)
         if not path.exists():
             raise FileNotFoundError(
                 f"Model weights not found: {path}\n"
                 "Run `python -m src.cli setup` for download instructions."
             )
-        return YOLO(str(path))
+        return YOLO(str(path), task=task)
 
 
     def detect_players(self,frame:np.ndarray) -> sv.Detections:
@@ -91,7 +91,7 @@ class Detector:
             crop,
             conf=self.cfg.detection.conf_ball,
             iou=self.cfg.detection.iou_nms,
-            imgsz = self.cfg.detection_ball_roi.inference_size,
+            imgsz = self.cfg.detection.ball_roi.inference_size,
             device=self.cfg.models.device,
             verbose=False,
         )[0]
