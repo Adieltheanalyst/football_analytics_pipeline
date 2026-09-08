@@ -87,7 +87,7 @@ def run(video_path: str | Path, cfg: Config, use_cache:bool = True)-> pd.DataFra
             (referees, np.full(len(referees), UNASSIGNED, dtype=int)),
         ):
             group_pitch = PitchCalibrator.to_pitch(anchor_points(group), homography)
-
+            group_pitch[~on_pitch_mask(group_pitch)] = np.nan
             for i in range(len(group)):
                 x1, y1, x2, y2 = group.xyxy[i]
                 rows.append(
@@ -154,5 +154,6 @@ def summarise(df: pd.DataFrame) -> None:
     print(f"  unique track ids   {players['track_id'].nunique()}")
     print(f"  mean players/frame {len(players) / frames:.1f}   (expect ~20)")
     print(f"  pitch coords       {df['pitch_x'].notna().sum()}/{len(df)} rows")
+    print(f"  usable pitch coords {df['pitch_x'].notna().sum()}/{len(df)}")
     print("\n  team split:")
     print(players["team"].value_counts().to_string())
