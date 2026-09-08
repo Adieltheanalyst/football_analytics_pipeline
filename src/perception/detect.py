@@ -15,7 +15,7 @@ class Detector:
         self.ball_class_id = int(self.classes.ball)
 
         self.player_model = self._load(cfg.models.player_detection)
-        self.pitch_model = self._load(cfg.models.pitch_detection)
+        self.pitch_model = self._load(cfg.models.pitch_detection, task="pose")
         self.ball_model = self._load(cfg.models.ball_detection)
 
         self._last_ball_xy: tuple[float,float] | None = None
@@ -123,11 +123,13 @@ class Detector:
     def detect_pitch(self,frame: np.ndarray) -> sv.KeyPoints:
         result=self.pitch_model.predict(
             frame,
-            conf=self.cfg.pitch.keypoint_confidence,
+            conf=self.cfg.pitch.detection_confidence,
             imgsz=self.cfg.video.inference_size,
             device=self.cfg.models.device,
             verbose=False
         )[0]
+        if result.keypoints is None:
+            return sv.KeyPoints.empty()
         return sv.KeyPoints.from_ultralytics(result)
     def split_by_class(self, detections: sv.Detections) -> dict[str, sv.Detections]:
         """Separate players, goalkeepers and referees — they need different handling."""
