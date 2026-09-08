@@ -16,6 +16,7 @@ class Detector:
 
         self.player_model = self._load(cfg.models.player_detection)
         self.pitch_model = self._load(cfg.models.pitch_detection)
+        self.ball_model = self._load(cfg.models.ball_detection)
 
         self._last_ball_xy: tuple[float,float] | None = None
         self._consecutive_misses=0
@@ -64,7 +65,7 @@ class Detector:
         return detections
 
     def _detect_ball_full(self,frame: np.ndarray)-> sv.Detections:
-        result = self.player_model.predict(
+        result = self.ball_model.predict(
             frame,
             conf=self.cfg.detection.conf_ball,
             iou=self.cfg.detection.iou_nms,
@@ -86,11 +87,11 @@ class Detector:
             return sv.Detections.empty()
 
         crop = frame[y1:y2 , x1:x2]
-        result = self.player_model.predict(
+        result = self.ball_model.predict(
             crop,
             conf=self.cfg.detection.conf_ball,
             iou=self.cfg.detection.iou_nms,
-            imgsz = self.cfg.video.inference_size,
+            imgsz = self.cfg.detection_ball_roi.inference_size,
             device=self.cfg.models.device,
             verbose=False,
         )[0]
@@ -99,7 +100,7 @@ class Detector:
 
         if len(detections):
             detections.xyxy= detections.xyxy+np.array([x1,y1,x1,y1], dtype=float)
-            return detections
+        return detections
 
     @staticmethod
     def _best_ball(detections: sv.Detections) -> sv.Detections:
@@ -123,11 +124,19 @@ class Detector:
         result=self.pitch_model.predict(
             frame,
             conf=self.cfg.pitch.keypoint_confidence,
-            imgz=self.cfg.video.inference_size,
-            device=self.cfg.models.dvice,
+            imgsz=self.cfg.video.inference_size,
+            device=self.cfg.models.device,
             verbose=False
         )[0]
         return sv.KeyPoints.from_ultralytics(result)
+    def split_by_class(self, detections: sv.Detections) -> dict[str, sv.Detections]:
+        """Separate players, goalkeepers and referees — they need different handling."""
+        c = self.classes
+        return {
+            "player": detections[detections.class_id == int(c.player)],
+            "goalkeeper": detections[detections.class_id == int(c.goalkeeper)],
+            "referee": detections[detections.class_id == int(c.referee)],
+        }
 
     def reset(self)->None:
         self._last_ball_xy = None
