@@ -48,6 +48,7 @@ detection:
     # If the ball is missed for this many consecutive sampled frames,
     # fall back to a full-frame search.
     max_misses: 5
+    inference_size: 640
 
 tracking:
   # supervision's ByteTrack parameters.
