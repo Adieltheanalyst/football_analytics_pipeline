@@ -78,6 +78,7 @@ pitch:
   # 6 gives RANSAC something to reject outliers with.
   min_keypoints: 6
   ransac_threshold: 8.0
+  detection_confidence: 0.10
   # Smooth the homography across frames to stop the radar jittering.
   smoothing_alpha: 0.70
 
