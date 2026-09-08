@@ -11,6 +11,7 @@ from src.perception.teams import TeamClassifier, UNASSIGNED, assign_goalkeepers
 from src.perception.track import PlayerTracker, anchor_points
 from src.utils.config import Config
 from src.utils.video import sample_frames, count_sampled_frames
+from src.perception.pitch import PitchCalibrator, on_pitch_mask
 
 
 def _fit_team_classifier(
@@ -39,7 +40,8 @@ def run(video_path: str | Path, cfg: Config, use_cache:bool = True)-> pd.DataFra
         if cached is not None:
             print(f"Cache hit: {len(cached)} rows (delete the parquet to force a rerun)")
             return cached
-
+    tracker = PlayerTracker(cfg)
+    calibrator = PitchCalibrator(cfg)
     detector = Detector(cfg)
     print("Pass 1/2: fitting team classifier...")
     classifier= _fit_team_classifier(video_path,cfg, detector)
@@ -78,12 +80,14 @@ def run(video_path: str | Path, cfg: Config, use_cache:bool = True)-> pd.DataFra
             if len(keepers) and len(players)
             else np.full(len(keepers), UNASSIGNED, dtype=int)
         )
- 
+        homography = calibrator.solve(detector.detect_pitch(frame))
         for group, teams in (
             (players, player_teams),
             (keepers, keeper_teams),
             (referees, np.full(len(referees), UNASSIGNED, dtype=int)),
         ):
+            group_pitch = PitchCalibrator.to_pitch(anchor_points(group), homography)
+
             for i in range(len(group)):
                 x1, y1, x2, y2 = group.xyxy[i]
                 rows.append(
@@ -104,13 +108,15 @@ def run(video_path: str | Path, cfg: Config, use_cache:bool = True)-> pd.DataFra
                         if group.confidence is not None
                         else np.nan,
                         "team": int(teams[i]),
-                        "pitch_x": np.nan,  # filled once homography lands
-                        "pitch_y": np.nan,
+                        "pitch_x": float(group_pitch[i][0]),  # filled once homography lands
+                        "pitch_y": float(group_pitch[i][1]),
                     }
                 )
  
         # --- ball ------------------------------------------------------------
         ball = detector.detect_ball(frame)
+        ball_pitch = PitchCalibrator.to_pitch(
+            np.array([[(x1 + x2)/ 2, (y1+y2) /2]]), homography)
         if len(ball):
             x1, y1, x2, y2 = ball.xyxy[0]
             rows.append(
@@ -125,14 +131,15 @@ def run(video_path: str | Path, cfg: Config, use_cache:bool = True)-> pd.DataFra
                     "y2": float(y2),
                     "confidence": float(ball.confidence[0]),
                     "team": UNASSIGNED,
-                    "pitch_x": np.nan,
-                    "pitch_y": np.nan,
+                    "pitch_x": float(ball_pitch[0][0]),
+                    "pitch_y": float(ball_pitch[0][1]),
                 }
             )
  
     df = pd.DataFrame(rows)
     path = cache.save(df, video_path, cfg)
     print(f"Wrote {len(df)} rows to {path}")
+    print(f"Homography solved on {calibrator.solve_rate:.1%} of frames")
     return df
  
  
@@ -146,5 +153,6 @@ def summarise(df: pd.DataFrame) -> None:
     print(f"  ball recall        {ball_frames}/{frames} ({100 * ball_frames / frames:.1f}%)")
     print(f"  unique track ids   {players['track_id'].nunique()}")
     print(f"  mean players/frame {len(players) / frames:.1f}   (expect ~20)")
+    print(f"  pitch coords       {df['pitch_x'].notna().sum()}/{len(df)} rows")
     print("\n  team split:")
     print(players["team"].value_counts().to_string())
