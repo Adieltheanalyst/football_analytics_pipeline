@@ -24,6 +24,15 @@ models:
   # torch device. On this machine there is no CUDA, so "cpu".
   device: "cpu"
 
+possession:
+  # Nearest player must be within this to count as possessing. Chosen from
+  # the measured nearest-player distance distribution on 2e57b9_0.mp4:
+  # median 505 cm, p25 162, p75 878. Tighter than ~400 loses real possession
+  # to homography error; looser than ~800 starts claiming uncontested balls.
+  max_distance_cm: 600
+  # Frames a new candidate must lead before possession officially switches.
+  hysteresis_frames: 3
+
 detection:
   # Class IDs from the Roboflow football-players-detection dataset.
   classes:

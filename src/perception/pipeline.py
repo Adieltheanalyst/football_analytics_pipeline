@@ -115,10 +115,12 @@ def run(video_path: str | Path, cfg: Config, use_cache:bool = True)-> pd.DataFra
  
         # --- ball ------------------------------------------------------------
         ball = detector.detect_ball(frame)
-        ball_pitch = PitchCalibrator.to_pitch(
-            np.array([[(x1 + x2)/ 2, (y1+y2) /2]]), homography)
+        
         if len(ball):
             x1, y1, x2, y2 = ball.xyxy[0]
+            ball_pitch = PitchCalibrator.to_pitch(
+                        np.array([[(x1 + x2)/ 2, (y1+y2) /2]]), homography)
+            ball_pitch[~on_pitch_mask(ball_pitch)] = np.nan
             rows.append(
                 {
                     "frame_idx": frame_idx,
