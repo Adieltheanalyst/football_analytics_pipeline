@@ -6,7 +6,7 @@ from sports.configs.soccer import SoccerPitchConfiguration
 from src.utils.config import Config
 
 PITCH = SoccerPitchConfiguration()
-PITCH_VERTICES = np.array(PITCH.vertices, dtypes=np.float32)
+PITCH_VERTICES = np.array(PITCH.vertices, dtype=np.float32)
 
 class PitchCalibrator:
     """Solves and smooths the image pitch homography frame by frame"""
@@ -16,7 +16,7 @@ class PitchCalibrator:
         self.min_keypoints = int(cfg.pitch.min_keypoints)
         self.kp_conf = float(cfg.pitch.keypoint_confidence)
         self.ransac_threshold=float(cfg.pitch.ransac_threshold)
-        self.aplha = float(cfg.pitch.smoothing_alpha)
+        self.alpha = float(cfg.pitch.smoothing_alpha)
 
         self._smoothed: np.ndarray | None = None
 
@@ -40,7 +40,7 @@ class PitchCalibrator:
         self._smoothed = self._smooth(homography)
         return self._smoothed
     def _confident_pairs(
-            self, kkeypoints: sv.KeyPoints
+            self, keypoints: sv.KeyPoints
     )-> tuple[np.ndarray,np.ndarray]:
         if keypoints.xy is None or len(keypoints.xy) == 0:
             return np.empty((0, 2), np.float32), np.empty((0, 2), np.float32)
@@ -54,7 +54,10 @@ class PitchCalibrator:
  
         mask = conf >= self.kp_conf
         # A keypoint at exactly (0, 0) is the model's way of saying "not found".
-        mask &= ~np.all(xy == 0, axis=1)
+        h,w =1080,1920 
+        edge=2.0
+        mask &= (xy[:, 0] > edge) & (xy[:, 0] < w - edge)
+        mask &= (xy[:, 1] > edge) & (xy[:, 1] < h - edge)
         return xy[mask], PITCH_VERTICES[mask]
  
     def _smooth(self, homography: np.ndarray) -> np.ndarray:
