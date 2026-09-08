@@ -33,7 +33,7 @@ def load_config(path:str |Path) -> Config:
         return Config(yaml.safe_load(handle))
 
 def config_fingerprint(cfg:Config, sections: tuple[str, ...]) -> str:
-    subset= {sections: cfg.get(section,{}) for section in sections}
+    subset= {section: cfg.get(section,{}) for section in sections}
     blob = json.dumps(subset,sort_keys=True, default=str)
     return hashlib.sha256(blob.encode("utf-8")).hexdigest()[:12]
         
