@@ -16,4 +16,4 @@ tqdm>=4.66.0
  
 # Dev
 pytest>=8.0.0
- 
+gdown
