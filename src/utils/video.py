@@ -1,9 +1,12 @@
 
 from __future__ import annotations
-from dataclasses import Path
+from dataclasses import dataclass
+from pathlib import Path
 from typing import Iterator
 import cv2
 import numpy as np
+# from src.utils.video import sample_frames
+
 
 
 @dataclass
@@ -82,4 +85,5 @@ def count_sampled_frames(
     end_native = (
         int(end_second*info.native_fps) if end_second is not None else info.total_frames
     )
+    
     return max(0, (end_native- start_native + stride -1) // stride)
