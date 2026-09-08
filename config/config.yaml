@@ -15,9 +15,9 @@ video:
   end_second: null
 
 models:
-  player_detection: "models/football-player-detection.pt"
-  pitch_detection: "models/football-pitch-detection.pt"
-  ball_detection: "models/football-ball-detection.pt"
+  player_detection: "models/football-player-detection_openvino_model"
+  ball_detection: "models/football-ball-detection_openvino_model"
+  pitch_detection: "models/football-pitch-detection_openvino_model"
   # "pytorch" or "openvino". openvino is 2-3x faster on Intel CPUs.
   backend: "pytorch"
 
@@ -53,8 +53,8 @@ detection:
 tracking:
   # supervision's ByteTrack parameters.
   track_activation_threshold: 0.25
-  lost_track_buffer: 30
-  minimum_matching_threshold: 0.80
+  lost_track_buffer: 60
+  minimum_matching_threshold: 0.9
   # ByteTrack needs the sampled frame rate, not the native one.
   frame_rate: 5
 
