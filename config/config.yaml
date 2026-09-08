@@ -15,11 +15,9 @@ video:
   end_second: null
 
 models:
-  # Local paths to weights. Run `python -m src.cli setup` for download help.
-  # Point these at the *_openvino_model/ directories after exporting.
-  player_detection: "models/player_detection.pt"
-  pitch_detection: "models/pitch_detection.pt"
-
+  player_detection: "models/football-player-detection.pt"
+  pitch_detection: "models/football-pitch-detection.pt"
+  ball_detection: "models/football-ball-detection.pt"
   # "pytorch" or "openvino". openvino is 2-3x faster on Intel CPUs.
   backend: "pytorch"
 
