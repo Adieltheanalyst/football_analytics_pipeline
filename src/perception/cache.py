@@ -57,8 +57,8 @@ def load(video_path: str | Path , cfg: Config) -> pd.DataFrame | None:
         return None
     return pd.read_parquet(path)
 
-def save(df: pd.DataFrame, video_Path: str | Path, cfg: Config) -> Path:
-    path = cache_path(video_Path,cfg)
+def save(df: pd.DataFrame, video_path: str | Path, cfg: Config) -> Path:
+    path = cache_path(video_path,cfg)
     missing = set(DETECTION_COLUMNS) - set(df.columns)
     if missing:
         raise ValueError(f"Detections table is missing columns: {sorted(missing)}")
