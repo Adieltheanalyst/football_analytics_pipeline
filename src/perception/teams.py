@@ -44,7 +44,7 @@ def kit_color(crop: np.ndarray) -> np.ndarray:
         np.average(sat, weights=weights) / 255.0,
         np.average(val, weights=weights) / 255.0,
     ],
-    dtpe=np.float32,
+    dtype=np.float32,
     )
 
 class TeamClassifier:
@@ -69,7 +69,7 @@ class TeamClassifier:
 
             )
         features = np.stack(self._samples)
-        self._kmeans= KMeans(n_cluster=2,n_init= 10, random_state=0).fit(features)
+        self._kmeans= KMeans(n_clusters=2,n_init= 10, random_state=0).fit(features)
 
     @property
     def fitted(self)-> bool:
@@ -110,7 +110,7 @@ def assign_goalkeepers(
             centroids[team]= np.nanmean(player_pitch_xy[mask], axis=0)
 
     if len(centroids) <2:
-        return np.full(len(gk_pitch_xy), UNASSIGNED,dtye=int)
+        return np.full(len(gk_pitch_xy), UNASSIGNED,dtype=int)
 
     assignments = np.full(len(gk_pitch_xy), UNASSIGNED, dtype=int)
     for i, position in enumerate(gk_pitch_xy):
