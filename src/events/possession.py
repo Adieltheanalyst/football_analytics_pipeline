@@ -3,7 +3,8 @@ from __future__ import annotations
 import numpy as np
 import pandas as pd
  
-NO_POSSESSION = -1
+NO_POSSESSION = -999
+UNIDENTIFIED_HOLDER = -1  
 UNASSIGNED_TEAM = -1
  
  

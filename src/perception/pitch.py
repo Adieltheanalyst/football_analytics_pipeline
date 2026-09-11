@@ -46,12 +46,12 @@ class PitchCalibrator:
             return np.empty((0, 2), np.float32), np.empty((0, 2), np.float32)
  
         xy = np.asarray(keypoints.xy[0], dtype=np.float32)        # (32, 2)
-        conf_attr = getattr(keypoints, "Keypoint_confidence", None)
+        conf_attr = getattr(keypoints, "keypoint_confidence", None)
         if conf_attr is None:
-            conf_attr=keypoints.confidence
+            conf_attr = keypoints.confidence
         conf = (
-            np.asarray(keypoints.confidence[0], dtype=np.float32)
-            if keypoints.confidence is not None
+            np.asarray(conf_attr[0], dtype=np.float32)
+            if conf_attr is not None
             else np.ones(len(xy), dtype=np.float32)
         )
  

@@ -28,7 +28,7 @@ class Radar:
         self.height = int(PITCH_WIDTH*scale) +2 *padding
         self._background = self._draw_pitch()
 
-     def _px(self, x_cm: float, y_cm: float) -> tuple[int, int]:
+    def _px(self, x_cm: float, y_cm: float) -> tuple[int, int]:
         return (
             int(x_cm * self.scale) + self.padding,
             int(y_cm * self.scale) + self.padding,
